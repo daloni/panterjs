@@ -1,23 +1,24 @@
 'use strict'
 
 require('dotenv').config()
+const fs = require('fs')
 const path = require('path')
 const http = require('http')
 const debug = require('debug')
 const chalk = require('chalk')
 const express = require('express')
+const rfs = require('rotating-file-stream')
 
 const { handleFatalError } = require('./utils')
 const webRoutes = require('./routes/web')
 const apiRoutes = require('./routes/api')
-
 const { sequelize } = require('./models')
 
 const port = process.env.PORT || 8080
 const app = express()
 const passport = require('passport')
 const flash = require('connect-flash')
-
+const morgan = require('morgan')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 const session = require('express-session')
@@ -30,6 +31,22 @@ app.set('views', path.join(__dirname, 'views'))
 // Set view engine
 app.set('view engine', 'pug')
 
+// Logs
+if (process.env.NODE_ENV === 'production') {
+  const logDirectory = path.join(__dirname, 'storage/logs')
+
+  fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory)
+
+  const accessLogStream = rfs('access.log', {
+    interval: '1d',
+    path: logDirectory
+  })
+
+  app.use(morgan('combined', { stream: accessLogStream }))
+} else {
+  app.use(morgan('dev'))
+}
+
 // Set Static files
 app.use(express.static(path.join(__dirname, 'public')))
 
@@ -38,7 +55,6 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 // Passport
-
 if (!process.env.APP_KEY) {
   console.error(`${chalk.red('[fatal error]')} APP_KEY not provided`)
   process.exit(1)
