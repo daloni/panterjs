@@ -10,8 +10,16 @@
     "db-setup": "DEBUG=panterjs:* node lib/db-setup.js",
     "lint": "standard"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ffiguereo/panterjs.git"
+  },
   "author": "Francisco Figuereo <ffiguereo2@gmail.com>",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ffiguereo/panterjs/issues"
+  },
+  "homepage": "https://github.com/ffiguereo/panterjs#readme",
   "devDependencies": {
     "nodemon": "1.15.1",
     "standard": "11.0.0"
