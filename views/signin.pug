@@ -1,0 +1,18 @@
+html
+  head
+    meta(name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no')
+    meta(charset='utf-8')
+    title Sign IN | React Express
+  body
+    h1 Sign IN | React Express
+
+    if message.length > 0
+      p #message
+
+    form(action="/signin" method="post")
+      input(type="email" name="email" placeholder="Email")
+      br
+      input(type="password" name="password" placeholder="Password")
+      br
+      input(type="submit" value="Join!")
+

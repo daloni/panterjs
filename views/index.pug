@@ -1,0 +1,12 @@
+html
+  head
+    meta(name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no')
+    meta(charset='utf-8')
+    title!= title
+  body
+    h1!= message
+
+    form(action="/logout" method="post")
+      input(type="submit" value="Logout")
+    if module
+      script(type='application/javascript' src!= module)
