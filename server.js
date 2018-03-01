@@ -9,10 +9,10 @@ const chalk = require('chalk')
 const express = require('express')
 const rfs = require('rotating-file-stream')
 
-const { handleFatalError } = require('./utils')
+const { handleFatalError } = require('./app/helpers')
 const webRoutes = require('./routes/web')
 const apiRoutes = require('./routes/api')
-const { sequelize } = require('./models')
+const { sequelize } = require('./app/models')
 
 const port = process.env.PORT || 8080
 const app = express()
@@ -21,12 +21,18 @@ const flash = require('connect-flash')
 const morgan = require('morgan')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
-const session = require('express-session')
+const expressSession = require('express-session')
+const passportConfig = require('./config/passport')
 
 const server = http.createServer(app)
 
+if (!process.env.APP_KEY) {
+  console.error(`${chalk.red('[fatal error]')} APP_KEY not provided`)
+  process.exit(1)
+}
+
 // Set views diretory
-app.set('views', path.join(__dirname, 'views'))
+app.set('views', path.join(__dirname, 'resources/views'))
 
 // Set view engine
 app.set('view engine', 'pug')
@@ -50,22 +56,20 @@ if (process.env.NODE_ENV === 'production') {
 // Set Static files
 app.use(express.static(path.join(__dirname, 'public')))
 
-app.use(cookieParser())
-app.use(bodyParser.urlencoded({ extended: false }))
+// Before midlewares
 app.use(bodyParser.json())
-
-// Passport
-if (!process.env.APP_KEY) {
-  console.error(`${chalk.red('[fatal error]')} APP_KEY not provided`)
-  process.exit(1)
-}
-
-require('./config/passport')(passport)
-
-app.use(session({ secret: process.env.APP_KEY }))
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(cookieParser())
+app.use(expressSession({ secret: process.env.APP_KEY, resave: false, saveUninitialized: true }))
 app.use(passport.initialize())
 app.use(passport.session())
 app.use(flash())
+
+// Config passport
+passport.use('local-signup', passportConfig.localStrategySignUp)
+passport.use('local-signin', passportConfig.localStrategySignIn)
+passport.serializeUser(passportConfig.serializeUser)
+passport.deserializeUser(passportConfig.deserializeUser)
 
 // Router
 app.use('/', webRoutes)

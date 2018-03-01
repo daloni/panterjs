@@ -3,7 +3,7 @@
 const inquirer = require('inquirer')
 const chalk = require('chalk')
 const minimist = require('minimist')
-const { handleFatalError } = require('../utils')
+const { handleFatalError } = require('../helpers')
 
 const { sequelize } = require('../models')
 

@@ -2,8 +2,8 @@
 
 const express = require('express')
 const passport = require('passport')
-const authController = require('../controllers/auth-controller')
-const isAuthenticated = require('../middlewares/is-authenticated')
+const authController = require('../app/http/controllers/auth-controller')
+const isAuthenticated = require('../app/http/middlewares/is-authenticated')
 
 const web = express.Router()
 
