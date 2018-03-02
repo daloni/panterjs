@@ -17,12 +17,15 @@ const { sequelize } = require('./app/models')
 const port = process.env.PORT || 8080
 const app = express()
 const passport = require('passport')
+const passportConfig = require('./config/passport')
 const flash = require('connect-flash')
 const morgan = require('morgan')
 const cookieParser = require('cookie-parser')
+const methodOverride = require('method-override')
 const bodyParser = require('body-parser')
 const expressSession = require('express-session')
-const passportConfig = require('./config/passport')
+const cors = require('cors')
+const corsConfig = require('./config/cors')
 
 const server = http.createServer(app)
 
@@ -57,8 +60,19 @@ if (process.env.NODE_ENV === 'production') {
 app.use(express.static(path.join(__dirname, 'public')))
 
 // Before midlewares
+app.use(cors(corsConfig))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
+
+app.use(methodOverride((req, res) => {
+  if (req.body && typeof req.body === 'object' && '_method' in req.body) {
+    // look in urlencoded POST bodies and delete it
+    const method = req.body._method
+    delete req.body._method
+    return method
+  }
+}))
+
 app.use(cookieParser())
 app.use(expressSession({ secret: process.env.APP_KEY, resave: false, saveUninitialized: true }))
 app.use(passport.initialize())
