@@ -12,7 +12,9 @@ const rfs = require('rotating-file-stream')
 const { handleFatalError } = require('./app/helpers')
 const webRoutes = require('./routes/web')
 const apiRoutes = require('./routes/api')
-const { sequelize } = require('./app/models')
+const { Model } = require('objection')
+const knexfile = require('./database/knexfile')
+const Knex = require('knex')
 
 const port = process.env.PORT || 8080
 const app = express()
@@ -101,17 +103,8 @@ app.use((err, req, res, next) => {
 })
 
 // Database
-sequelize.authenticate()
-  .then(() => {
-    console.log(`${chalk.green('[panterjs:db]')} authenticated!`)
-  })
-  .catch(handleFatalError)
-
-sequelize.sync({ force: false })
-  .then(() => {
-    console.log(`${chalk.green('[panterjs:db]')} database sync successfully!`)
-  })
-  .catch(handleFatalError)
+const knex = Knex(knexfile)
+Model.knex(knex)
 
 // Catch Exception
 process.on('uncaughtException', handleFatalError)
