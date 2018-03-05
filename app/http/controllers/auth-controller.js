@@ -9,11 +9,8 @@ function signin (req, res) {
 }
 
 function logout (req, res) {
-  req.session.destroy(err => {
-    console.log('Error:', err)
-
-    res.redirect('/')
-  })
+  req.logout()
+  res.redirect('/')
 }
 
 module.exports = {
