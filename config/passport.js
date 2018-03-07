@@ -1,6 +1,6 @@
 'use strict'
 
-const { generateHash, isValidPassword } = require('../utils')
+const { generateHash, isValidPassword } = require('../app/helpers')
 const LocalStrategy = require('passport-local').Strategy
 const User = require('../app/models/user')
 

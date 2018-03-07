@@ -1,7 +1,7 @@
 'use strict'
 
 const faker = require('faker')
-const { generateHash } = require('../../utils')
+const { generateHash } = require('../../app/helpers')
 
 const table = 'users'
 const password = generateHash('secret')
