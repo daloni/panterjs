@@ -1,10 +1,8 @@
 'use strict'
 
-const bCrypt = require('bcrypt-nodejs')
+const { generateHash, isValidPassword } = require('../app/helpers')
 const LocalStrategy = require('passport-local').Strategy
-const { user } = require('../app/models')
-
-const User = user
+const User = require('../app/models/user')
 
 const configLocalStrategy = {
   usernameField: 'email',
@@ -16,68 +14,49 @@ const serializeUser = (user, done) => {
   done(null, user.id)
 }
 
-const deserializeUser = (id, done) => {
-  User.findById(id)
-    .then(user => {
-      if (user) {
-        done(null, user.get())
-      }
+const deserializeUser = async (id, done) => {
+  const user = await User.query().findById(id)
 
-      done(user.erros, null)
-    })
+  if (user) {
+    done(null, user)
+  }
+
+  done(null, false)
 }
 
-const localStrategySignUp = new LocalStrategy(configLocalStrategy, function (req, email, password, done) {
-  const generateHash = function (password) {
-    return bCrypt.hashSync(password, bCrypt.genSaltSync(8), null)
+const localStrategySignUp = new LocalStrategy(configLocalStrategy, async (req, email, password, done) => {
+  const user = await User.query().findOne({ email: email })
+
+  if (user) {
+    return done(null, false, req.flash('signupMessage', 'That email is already taken'))
   }
 
-  User.findOne({ where: { email: email } })
-    .then(user => {
-      if (user) {
-        return done(null, false, req.flash('signupMessage', 'That email is already taken'))
-      }
+  const newUser = await User.query().insert({
+    email: email,
+    password: generateHash(password),
+    first_name: req.body.firstName,
+    last_name: req.body.lastName
+  })
 
-      const data = {
-        email: email,
-        password: generateHash(password),
-        firstName: req.body.firstName,
-        lastName: req.body.lastName
-      }
+  if (!newUser) {
+    return done(null, false)
+  }
 
-      User.create(data)
-        .then((newUser) => {
-          if (!newUser) {
-            return done(null, false)
-          }
-
-          return done(null, newUser)
-        })
-    })
+  return done(null, newUser)
 })
 
-const localStrategySignIn = new LocalStrategy(configLocalStrategy, function (req, email, password, done) {
-  const isValidPassword = function (userpass, password) {
-    return bCrypt.compareSync(password, userpass)
+const localStrategySignIn = new LocalStrategy(configLocalStrategy, async (req, email, password, done) => {
+  const user = await User.query().findOne({ email: email })
+
+  if (!user) {
+    return done(null, false, req.flash('loginMessage', 'No user found.'))
   }
 
-  User.findOne({ where: { email: email } })
-    .then(user => {
-      if (!user) {
-        return done(null, false, req.flash('loginMessage', 'No user found.'))
-      }
+  if (!isValidPassword(user.password, password)) {
+    return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.'))
+  }
 
-      if (!isValidPassword(user.password, password)) {
-        return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.'))
-      }
-
-      return done(null, user.get())
-    })
-    .catch(err => {
-      console.log('Error:', err)
-
-      return done(null, false, req.flash('loginMessage', 'Something went wrong with your Signin'))
-    })
+  return done(null, user)
 })
 
 module.exports = {

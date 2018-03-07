@@ -12,7 +12,9 @@ const rfs = require('rotating-file-stream')
 const { handleFatalError } = require('./app/helpers')
 const webRoutes = require('./routes/web')
 const apiRoutes = require('./routes/api')
-const { sequelize } = require('./app/models')
+const { Model } = require('objection')
+const knexfile = require('./database/knexfile')
+const Knex = require('knex')
 
 const port = process.env.PORT || 8080
 const app = express()
@@ -24,8 +26,10 @@ const cookieParser = require('cookie-parser')
 const methodOverride = require('method-override')
 const bodyParser = require('body-parser')
 const expressSession = require('express-session')
+const sessionConfig = require('./config/session')
 const cors = require('cors')
 const corsConfig = require('./config/cors')
+const helmet = require('helmet')
 
 const server = http.createServer(app)
 
@@ -40,16 +44,15 @@ app.set('views', path.join(__dirname, 'resources/views'))
 // Set view engine
 app.set('view engine', 'pug')
 
-// Logs
 if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1)
+
+  // Logs
   const logDirectory = path.join(__dirname, 'storage/logs')
 
   fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory)
 
-  const accessLogStream = rfs('access.log', {
-    interval: '1d',
-    path: logDirectory
-  })
+  const accessLogStream = rfs('access.log', { interval: '1d', path: logDirectory })
 
   app.use(morgan('combined', { stream: accessLogStream }))
 } else {
@@ -60,6 +63,7 @@ if (process.env.NODE_ENV === 'production') {
 app.use(express.static(path.join(__dirname, 'public')))
 
 // Before midlewares
+app.use(helmet())
 app.use(cors(corsConfig))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -74,7 +78,7 @@ app.use(methodOverride((req, res) => {
 }))
 
 app.use(cookieParser())
-app.use(expressSession({ secret: process.env.APP_KEY, resave: false, saveUninitialized: true }))
+app.use(expressSession(sessionConfig))
 app.use(passport.initialize())
 app.use(passport.session())
 app.use(flash())
@@ -101,15 +105,12 @@ app.use((err, req, res, next) => {
 })
 
 // Database
-sequelize.authenticate()
+const knex = Knex(knexfile)
+Model.knex(knex)
+
+knex.raw('select 1+1 as result')
   .then(() => {
     console.log(`${chalk.green('[panterjs:db]')} authenticated!`)
-  })
-  .catch(handleFatalError)
-
-sequelize.sync({ force: false })
-  .then(() => {
-    console.log(`${chalk.green('[panterjs:db]')} database sync successfully!`)
   })
   .catch(handleFatalError)
 

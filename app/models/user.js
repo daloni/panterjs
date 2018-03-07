@@ -1,31 +1,19 @@
 'use strict'
 
-module.exports = function (sequelize, Sequelize) {
-  const User = sequelize.define('user', {
-    id: {
-      autoIncrement: true,
-      primaryKey: true,
-      type: Sequelize.INTEGER
-    },
-    firstName: {
-      type: Sequelize.STRING,
-      notEmpty: true
-    },
-    lastName: {
-      type: Sequelize.STRING,
-      notEmpty: true
-    },
-    email: {
-      type: Sequelize.STRING,
-      validate: {
-        isEmail: true
-      }
-    },
-    password: {
-      type: Sequelize.STRING,
-      allowNull: false
-    }
-  })
+const { Model } = require('objection')
 
-  return User
+class User extends Model {
+  static get tableName () {
+    return 'users'
+  }
+
+  $beforeInsert () {
+    this.created_at = new Date().toISOString()
+  }
+
+  $beforeUpdate () {
+    this.updated_at = new Date().toISOString()
+  }
 }
+
+module.exports = User

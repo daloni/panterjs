@@ -2,17 +2,21 @@ html
   head
     meta(name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no')
     meta(charset='utf-8')
-    title Sign IN | React Express
+    title Sign In | Panter JS
+    link(rel="stylesheet", href="css/signin.css")
   body
-    h1 Sign IN | React Express
+    main(class="signin-main")
 
-    if message.length > 0
-      p #message
+      div(class="signin-card")
+        h1(class="signin-card-title") Sign In | Panter JS
 
-    form(action="/signin" method="post")
-      input(type="email" name="email" placeholder="Email")
-      br
-      input(type="password" name="password" placeholder="Password")
-      br
-      input(type="submit" value="Join!")
+        if message.length > 0
+          div(class="signin-alert")
+            p!=message
+
+        form(action="/signin" method="post")
+          input(type="email" name="email" placeholder="Email" class="signin-input" required)
+          input(type="password" name="password" placeholder="Password" class="signin-input" required)
+          button(type="submit" class="signin-btn") Login
+          a(href="/signup" class="signin-btn") Join
 
