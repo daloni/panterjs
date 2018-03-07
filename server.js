@@ -108,6 +108,12 @@ app.use((err, req, res, next) => {
 const knex = Knex(knexfile)
 Model.knex(knex)
 
+knex.raw('select 1+1 as result')
+  .then(() => {
+    console.log(`${chalk.green('[panterjs:db]')} authenticated!`)
+  })
+  .catch(handleFatalError)
+
 // Catch Exception
 process.on('uncaughtException', handleFatalError)
 process.on('unhandledRejection', handleFatalError)
