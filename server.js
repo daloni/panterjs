@@ -28,6 +28,7 @@ const bodyParser = require('body-parser')
 const expressSession = require('express-session')
 const cors = require('cors')
 const corsConfig = require('./config/cors')
+const helmet = require('helmet')
 
 const server = http.createServer(app)
 
@@ -62,6 +63,7 @@ if (process.env.NODE_ENV === 'production') {
 app.use(express.static(path.join(__dirname, 'public')))
 
 // Before midlewares
+app.use(helmet())
 app.use(cors(corsConfig))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
